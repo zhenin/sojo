@@ -1,0 +1,109 @@
+---
+title: "sojo Tutorial"
+author: "Zheng Ning"
+date: "5/19/2017"
+output:
+  html_document:
+    code_folding: show
+    theme: cosmo
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What is SOJO?
+
+SOJO stands for **S**election **O**perator for **JO**intly analyzing multiple variants. It is a tool for implementing Least Absolute Shrinkage and Selection Operator (LASSO) using GWAS summary statistics. LASSO was introduced and applied to variable selection problems in various disciplines because of its better interpretability and prediction accuracy. More specifically, Instead of only considering the square loss function $\frac{1}{2}\|\mathbf{y} -\mathbf{X}\hat{\beta}\|_2^2$, LASSO takes the $\ell_1$-norm regularization $\| \hat{\beta} \|_1$ into account and solves
+
+$$\underset{\hat{\beta} \in R^p}{\min} \, \frac{1}{2}\|\mathbf{y} -\mathbf{X}\hat{\beta}\|_2^2 + \lambda \| \hat{\beta} \|_1, $$
+where the tuning parameter $\lambda \geq 0$. The regularization term makes LASSO allow large coefficients only when they lead to substantially better fit. The LASSO result at any tuning parameter can be approximated by using (i) the covariance structure between variants and the trait and (ii) the LD structure between variants. The method is described in:
+
+**Ning et al. (2017) A selection operator for summary association statistics reveals locus-specific allelic heterogeneity of complex traits. _Submitted_**
+
+
+## What data is required?
+
+SOJO needs genome-wide association study (GWAS) summary statistics for a trait. The data frame of GWAS summary statistics should contain columns for variant names (column name `SNP`), effect alleles (column name `A1`), reference alleles (column name `A2`), allele frequencies of A1 (column name `Freq1`), effect sizes (column name `b`), standard errors (column name `se`), and sample sizes (column name `N`). An example data frame is given later.
+
+
+## Installation
+
+Run the following command in R to install the **sojo** package:
+
+For Windows users, please download and install the R package for 
+
+
+
+For Mac and Linux users, please download the source .tar.gz and install via:
+
+`R CMD INSTALL sojo_1.0.tar.gz`
+
+in your terminal.
+
+In R, load the package via:
+
+```{r}
+library(sojo)
+```
+
+or 
+
+```{r}
+require(sojo)
+```
+
+
+
+## LASSO using Summary Statistics
+
+#### Example Summary Statistics
+
+You need to load a data frame of GWAS summary statistics for a trait into your working directory. Let us demonstrate this via an example included in the package. Here, we have the summary statistics for height across 963 variants around rs11090631 on chromosome 22. The top of the summary statistics file looks like:
+
+```{r}
+data(sum.stat.raw)
+head(sum.stat.raw)
+```
+
+
+#### A Simple sojo analysis
+Once the data are successfully loaded and all necessary columns are present, the LASSO solution can be computed by:
+
+```{r}
+res <- sojo(sum.stat.raw, chr = 22, nvar = 20)
+```
+
+The result is a list with two sub-objects `$lambda.v` and `$beta.mat`. By setting `nvar = 20`, the computation stops when the model include 20 variants with non-zero coefficients. The vector of lambdas when a variant is added into or removed from the model can been seen by:
+
+```{r}
+res$lambda.v
+```
+
+We can check the LASSO solutions for some variants at lambdas among `lambda.v`:  
+```{r}
+snp_selected <- which(res$beta.mat[,5] != 0)
+res$beta.mat[snp_selected,1:4]
+```
+
+The LASSO path plot can be obtained by:
+
+```{r}
+matplot(log(res$lambda.v), t(as.matrix(res$beta.mat)), lty = 1, type = "l", xlab = expression(paste(log, " ",lambda)), ylab = "Coefficients", main = "Summary-level LASSO")
+```
+
+LASSO solution at some specific tuning parameters can also be computed via:
+
+```{r}
+res2 <- sojo(sum.stat.raw = sum.stat.raw, chr = 22, lambda.vec = c(0.004,0.002))
+```
+
+## For Help 
+For direct R documentation of `sojo` function, you can simply use question mark in R:
+
+```{r}
+?sojo
+```
+
+If you have specific questions, you may email the maintainer of sojo via zheng.ning@ki.se.
