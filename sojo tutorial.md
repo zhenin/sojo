@@ -12,7 +12,9 @@ square loss function
 takes the ℓ<sub>1</sub>-norm regularization ![](http://mathurl.com/y9k4jx47.png)
 into account and solves
 
-![](http://mathurl.com/ycl9zc3k.png)
+<p align="center"> 
+<img src="http://mathurl.com/ycl9zc3k.png">
+</p>
 
 where the tuning parameter *λ* ≥ 0. The regularization term makes LASSO
 allow large coefficients only when they lead to substantially better
@@ -119,8 +121,7 @@ The LASSO path plot can be obtained by:
     matplot(log(res$lambda.v), t(as.matrix(res$beta.mat)), lty = 1, type = "l", 
         xlab = expression(paste(log, " ", lambda)), ylab = "Coefficients", main = "Summary-level LASSO")
 
-![](Images/example.png)
-
+<img src="Images/example.png" width="700">
 LASSO solution at some specific tuning parameters can also be computed
 via:
 
