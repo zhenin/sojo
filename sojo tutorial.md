@@ -49,8 +49,8 @@ Run the following command in R to install the **sojo** package:
 
 `install.packages("sojo", repos = "http://R-Forge.R-project.org")`
 
-For Mac and Linux users, please download the source .tar.gz and install
-via:
+For Mac and Linux users, please download the source .tar.gz from https://r-forge.r-project.org/R/?group_id=2030
+and install via:
 
 `R CMD INSTALL sojo_1.0.tar.gz`
 
