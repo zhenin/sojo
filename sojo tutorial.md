@@ -31,7 +31,7 @@ traits. *Submitted***
 What data are required?
 -----------------------
 
-SOJO needs genome-wide association study (GWAS) summary statistics for a
+* GWAS summary statistics of SNPs at a locus for a
 trait. The data frame of GWAS summary statistics should contain columns
 for variant names (column name `SNP`), effect alleles (column name
 `A1`), reference alleles (column name `A2`), allele frequencies of A1
@@ -39,12 +39,15 @@ for variant names (column name `SNP`), effect alleles (column name
 (column name `se`), and sample sizes (column name `N`). An example data
 frame is given later.
 
+* A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from https://www.dropbox.com/home/sojo%20reference%20ld%20matrix. 
+These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix.
+
 Installation
 ------------
 
 Run the following command in R to install the **sojo** package:
 
-For Windows users, please download and install the R package for
+`install.packages("sojo", repos = "http://R-Forge.R-project.org")`
 
 For Mac and Linux users, please download the source .tar.gz and install
 via:
@@ -83,12 +86,23 @@ summary statistics file looks like:
     ## 5  rs5766231  A  G 0.833  0.0052 0.0038 253216
     ## 6 rs11703912  A  G 0.833  0.0052 0.0038 252265
 
+#### Download the reference LD correlation matrix
+
+Now we need the reference LD information at the locus where rs11090631 is located in. We can download the LD matrix by:
+
+    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", destfile = paste0(find.package('sojo'), "example.rda"))
+    
+Then load it into environment:
+
+    load(file = paste0(find.package('sojo'), "example.rda"))
+
+
 #### A Simple sojo analysis
 
 Once the data are successfully loaded and all necessary columns are
 present, the LASSO solution can be computed by:
 
-    res <- sojo(sum.stat.raw, chr = 22, nvar = 20)
+    res <- sojo(sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, nvar = 20)
 
 The result is a list with two sub-objects `$lambda.v` and `$beta.mat`.
 By setting `nvar = 20`, the computation stops when the model include 20
@@ -125,7 +139,7 @@ The LASSO path plot can be obtained by:
 LASSO solution at some specific tuning parameters can also be computed
 via:
 
-    res2 <- sojo(sum.stat.raw = sum.stat.raw, chr = 22, lambda.vec = c(0.004,0.002))
+    res2 <- sojo(sum.stat.raw = sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.004,0.002))
 
 For Help
 --------
