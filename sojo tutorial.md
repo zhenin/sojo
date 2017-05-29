@@ -13,7 +13,7 @@ takes the ℓ<sub>1</sub>-norm regularization $\\| \\hat{\\beta} \\|\_1$
 into account and solves
 
 $$\\underset{\\hat{\\beta} \\in R^p}{\\min} \\, \\frac{1}{2}\\|\\mathbf{y} -\\mathbf{X}\\hat{\\beta}\\|\_2^2 + \\lambda \\| \\hat{\\beta} \\|\_1, $$
-\zeta(s) = \sum_{n=1}^\infty \frac{1}{n^s}
+[[http://mathurl.com/ycl9zc3k.png]]
 
 where the tuning parameter *λ* ≥ 0. The regularization term makes LASSO
 allow large coefficients only when they lead to substantially better
