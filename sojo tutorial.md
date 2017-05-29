@@ -8,12 +8,11 @@ LASSO was introduced and applied to variable selection problems in
 various disciplines because of its better interpretability and
 prediction accuracy. More specifically, Instead of only considering the
 square loss function
-$\\frac{1}{2}\\|\\mathbf{y} -\\mathbf{X}\\hat{\\beta}\\|\_2^2$, LASSO
-takes the ℓ<sub>1</sub>-norm regularization $\\| \\hat{\\beta} \\|\_1$
+![](http://mathurl.com/yctode9q.png), LASSO
+takes the ℓ<sub>1</sub>-norm regularization ![](http://mathurl.com/y9k4jx47.png)
 into account and solves
 
-$$\\underset{\\hat{\\beta} \\in R^p}{\\min} \\, \\frac{1}{2}\\|\\mathbf{y} -\\mathbf{X}\\hat{\\beta}\\|\_2^2 + \\lambda \\| \\hat{\\beta} \\|\_1, $$
-[[http://mathurl.com/ycl9zc3k.png]]
+![](http://mathurl.com/ycl9zc3k.png)
 
 where the tuning parameter *λ* ≥ 0. The regularization term makes LASSO
 allow large coefficients only when they lead to substantially better
