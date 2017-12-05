@@ -38,7 +38,7 @@ for variant names (column name `SNP`), effect alleles (column name
 frame is given later.
 
 * A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from https://www.dropbox.com/home/sojo%20reference%20ld%20matrix. 
-These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. If chip markers are insufficient for the study, in this manual, we also provide commands to compute LD matrix and reference allele information based on 1000 Genomes European-ancestry samples.
+These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. If chip markers are insufficient for your study, in this manual, we also provide commands to compute LD matrix and reference allele information based on 1000 Genomes European-ancestry samples.
 
 Installation
 ------------
