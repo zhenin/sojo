@@ -92,7 +92,8 @@ Now we need the reference LD information at the locus where rs11090631 is locate
 
 We can download the LD matrix and reference allele imformation for chromosome 22 directly by:
 
-    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", destfile = paste0(find.package('sojo'), "/LD_chr22.rda"))
+    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", 
+    destfile = paste0(find.package('sojo'), "/LD_chr22.rda"))
     
 Then load it into environment:
 
@@ -104,7 +105,8 @@ We did not upload the LD matrix from the 1000 Genomes Project because the number
 
 Firstly, we can download and unzip genotypes of 1000 Genomes European-ancestry samples (provided by LDSC project) by
 
-    download.file("https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz", destfile = paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"))
+    download.file("https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz", 
+    destfile = paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"))
     untar(paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"),exdir=find.package('sojo'))
     
 Then we specify the paths of plink and 1000 Genomes data:
