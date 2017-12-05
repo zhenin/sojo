@@ -38,19 +38,19 @@ for variant names (column name `SNP`), effect alleles (column name
 frame is given later.
 
 * A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from https://www.dropbox.com/home/sojo%20reference%20ld%20matrix. 
-These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix.
+These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. If chip markers are insufficient for the study, in this manual, we also provide commands to compute LD matrix and reference allele information based on 1000 Genomes European-ancestry samples.
 
 Installation
 ------------
 
 Run the following command in R to install the **sojo** package:
 
-`install.packages("sojo", repos = "http://R-Forge.R-project.org")`
+    install.packages("sojo", repos = "http://R-Forge.R-project.org")
 
 For Mac and Linux users, please download the source .tar.gz from https://r-forge.r-project.org/R/?group_id=2030
 and install via:
 
-`R CMD INSTALL sojo_1.0.tar.gz`
+    R CMD INSTALL sojo_1.0.tar.gz
 
 in your terminal.
 
@@ -86,13 +86,46 @@ summary statistics file looks like:
 
 #### Download the reference LD correlation matrix
 
-Now we need the reference LD information at the locus where rs11090631 is located in. We can download the LD matrix by:
+Now we need the reference LD information at the locus where rs11090631 is located in. For European-ancestry data, we provide two sources of LD information so that you do not need to compute your own LD matrix.
 
-    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", destfile = paste0(find.package('sojo'), "example.rda"))
+1. The Swedish Twin Registry 
+
+We can download the LD matrix and reference allele imformation for chromosome 22 directly by:
+
+    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", destfile = paste0(find.package('sojo'), "/LD_chr22.rda"))
     
 Then load it into environment:
 
-    load(file = paste0(find.package('sojo'), "example.rda"))
+    load(file = paste0(find.package('sojo'), "/LD_chr22.rda"))
+    
+2. The 1000 Genomes Project
+
+We did not upload the LD matrix from the 1000 Genomes Project because the number of variants is much larger here. However, we can use the following commands to get the LD matrix and reference allele imformation for chromosome 22. **Note: [plink 1.9](https://www.cog-genomics.org/plink2) is needed for the following commands.**
+
+Firstly, we can download and unzip genotypes of 1000 Genomes European-ancestry samples (provided by LDSC project) by
+
+    download.file("https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz", destfile = paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"))
+    untar(paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"),exdir=find.package('sojo'))
+    
+Then we specify the paths of plink and 1000 Genomes data:
+
+    path.plink <- "path/to/plink/executable/file/plink"
+    path.1kG <- paste0(find.package('sojo'),"/1000G_EUR_Phase3_plink")
+     
+We can get the LD matrix and reference allele imformation for the SNPs in this sumamry statistics data frame by
+
+    snps <- sum.stat.raw$SNP
+    write.table(snps, file = paste0(snps[1],"_snp_list.txt"), quote = F, row.names = F, col.names = F)
+    chr <- 22
+
+    system(paste0(path.plink," -bfile ", path.1kG,"/1000G.EUR.QC.",chr," --r square --extract ", snps[1], "_snp_list.txt --out ", snps[1], " --noweb"))
+    system(paste0(path.plink," -bfile ", path.1kG,"/1000G.EUR.QC.",chr," --freq --extract ", snps[1], "_snp_list.txt --out ", snps[1], " --noweb"))
+
+    LD_1kG <- as.matrix(read.table(paste0(snps[1], ".ld")))
+    maf_1kG <- read.table(paste0(snps[1], ".frq"), header = T)
+    snp_ref_1kG <- maf_1kG[,"A2"]
+    names(snp_ref_1kG) <- maf_1kG[,"SNP"]
+    colnames(LD_1kG) <- rownames(LD_1kG) <- maf_1kG$SNP
 
 
 #### A Simple sojo analysis
@@ -154,4 +187,5 @@ Citation
 --------
 
 If you use the R package `sojo`, please cite
+
 [Ning et al. A Selection Operator for Summary Association Statistics Reveals Allelic Heterogeneity of Complex Traits. The American Journal of Human Genetics, 2017](http://www.cell.com/ajhg/fulltext/S0002-9297(17)30419-6)
