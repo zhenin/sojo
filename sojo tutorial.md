@@ -24,9 +24,7 @@ parameter can be approximated by using (i) the covariance structure
 between variants and the trait and (ii) the LD structure between
 variants. The method is described in:
 
-**Ning et al. (2017) A selection operator for summary association
-statistics reveals locus-specific allelic heterogeneity of complex
-traits. *Submitted***
+[Ning et al. A Selection Operator for Summary Association Statistics Reveals Allelic Heterogeneity of Complex Traits. The American Journal of Human Genetics, 2017](http://www.cell.com/ajhg/fulltext/S0002-9297(17)30419-6)
 
 What data are required?
 -----------------------
@@ -151,3 +149,9 @@ question mark in R:
 
 If you have specific questions, you may email the maintainer of sojo via
 <zheng.ning@ki.se>.
+
+Citation
+--------
+
+If you use the R package `sojo`, please cite
+[Ning et al. A Selection Operator for Summary Association Statistics Reveals Allelic Heterogeneity of Complex Traits. The American Journal of Human Genetics, 2017](http://www.cell.com/ajhg/fulltext/S0002-9297(17)30419-6)
