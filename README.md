@@ -109,12 +109,15 @@ Firstly, we can download and unzip genotypes of 1000 Genomes European-ancestry s
     destfile = paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"))
     untar(paste0(find.package('sojo'), "/1000G_Phase3_plinkfiles.tgz"),exdir=find.package('sojo'))
     
-Then we specify the paths of plink and 1000 Genomes data:
+Then we specify the path to plink (**Note: Please change the path below to your own path to the plink executable file**) by 
 
     path.plink <- "path/to/plink/executable/file/plink"
+    
+and the path to 1000 Genomes data by
+
     path.1kG <- paste0(find.package('sojo'),"/1000G_EUR_Phase3_plink")
      
-We can get the LD matrix and reference allele imformation for the SNPs in this sumamry statistics data frame by
+Now, we can get the LD matrix and reference allele imformation for the SNPs in this sumamry statistics data frame by
 
     snps <- sum.stat.raw$SNP
     write.table(snps, file = paste0(snps[1],"_snp_list.txt"), quote = F, row.names = F, col.names = F)
