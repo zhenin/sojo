@@ -1,0 +1,238 @@
+#' Selection Operator for Jointly analyzing multiple variants (SOJO)
+#' 
+#' This function computes penalized Selection Operator for JOintly analyzing multiple variants (SOJO) within a mapped locus,
+#'  based on LASSO regression derived from GWAS summary statistics. 
+#' 
+#' @param sum.stat.raw A data frame including GWAS summary statistics of genetic variants within a mapped locus. 
+#' The input data frame should include following columns: SNP, SNP ID; A1, effect allele; A2, reference allele; Freq1, the allele frequency of Allele1;
+#' b, estimate of marginal effect in GWAS; se, standard error of the estimates of marginal effects in GWAS; N, sample size.
+#' @param LD_ref The reference LD correlation matrix including SNPs at the locus. The row names and column names of the matrix should be SNP names in reference sample.
+#' @param snp_ref The reference alleles of SNPs in the reference LD correlation matrix. The names of the vector should be SNP names in reference sample.
+#' @param v.y The phenotypic variance of the trait. Default is 1.
+#' @param lambda.vec The tuning parameter sequence given by user. If not specified, the function will compute its own tuning parameter sequence
+#' ,which is recommended.
+#' @param standardize Logical value for genotypic data standardization, prior to starting the algorithm. 
+#' The coefficients in output are always transformed back to the original scale. Default is \code{standardize = TRUE}.
+#' @param nvar The number of variants aiming to be selected in the model. 
+#' For example, if \code{nvar = 5}, then the algorithm will stop before the sixth variant is selected. Default is 50.
+#' 
+#' @note Users can download reference LD correlation matrices from https://www.dropbox.com/home/sojo\%20reference\%20ld\%20matrix. 
+#' These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. 
+#' 
+#' When a tiny \code{lambda.vec} is specified, the LASSO solution is similar to the standard multiple regression, 
+#' which may cause error due to complete LD between variants. 
+#' 
+#' Note the length of lambda.v in result may be longer than \code{nvar}. Because a lambda will be recorded when a variant is 
+#' added into or removed from the model. 
+#' 
+#' @return A list is returned with:
+#' \itemize{
+#' \item{lambda.v }{The tuning parameter sequence actually used.}
+#' \item{beta.mat }{The LASSO estimates at the tuning parameters in \code{lambda.v} stored in sparse matrix format.}
+#' }
+#' 
+#' @author Zheng Ning
+#' 
+#' @references 
+#' Ning Z, Lee Y, Joshi PK, Wilson JF, Pawitan Y, Shen X (2017). A selection operator for summary association statistics 
+#' reveals locus-specific allelic heterogeneity of complex traits. \emph{Submitted}.
+#' 
+#' @seealso 
+#' sojo tutorial: https://github.com/zhenin/sojo
+#' @import Matrix
+#' 
+#' @examples 
+#'\dontrun{
+#' ## The GWAS summary statistics of SNPs in 1 MB window centred at rs11090631 
+#' data(sum.stat.raw)
+#' head(sum.stat.raw)
+#' 
+#' ## The reference matrix and corresponding reference alleles 
+#' download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", destfile = paste0(find.package('sojo'), "example.rda"))
+#' load(file = paste0(find.package('sojo'), "example.rda"))
+#' 
+#' res <- sojo(sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, nvar = 20)
+#' 
+#' ## LASSO path plot
+#' matplot(log(res$lambda.v), t(as.matrix(res$beta.mat)), lty = 1, type = "l", xlab = expression(paste(log, " ",lambda)), 
+#' ylab = "Coefficients", main = "Summary-level LASSO")
+#' 
+#' ## LASSO solution for user supplied tuning parameters
+#' res2 <- sojo(sum.stat.raw = sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.004,0.002))
+#' }
+#' 
+#' @export
+#' 
+sojo <- 
+  function(sum.stat.raw, LD_ref, snp_ref, v.y=1, lambda.vec=NA, standardize = T, nvar = 50){
+    
+    colnames_input <- c("SNP", "A1", "A2", "Freq1","b", "se", "N")
+    colnames_lack <- setdiff(colnames_input, intersect(colnames(sum.stat.raw), colnames_input))
+    
+    if(length(colnames_lack) > 0){
+      colnames_lack <- paste(colnames_lack, collapse = ', ')
+      stop(paste("The following columns are missing:", colnames_lack))
+    }
+    
+    if(ncol(LD_ref) != length(snp_ref)){
+      stop("The SNPs in reference LD matrix and reference allele vector does't match! Please check.")
+    }
+    
+    
+    rownames(LD_ref) <- colnames(LD_ref) <- names(snp_ref)
+    array.snp <- intersect(sum.stat.raw$SNP,names(snp_ref))
+    if(length(array.snp) == 0){
+      stop("There is no overlapping SNPs between summary statistics and reference LD matrix! Please check.")
+    }
+    rownames(sum.stat.raw) <- sum.stat.raw$SNP
+    sum.stat <- sum.stat.raw[array.snp,]
+    
+    ##### Map reference allele #####
+    
+    LD_mat_save <- LD_ref[array.snp,array.snp]
+    LD_mat_save[lower.tri(LD_mat_save,diag = T)] <- 0
+    cov_X <- LD_mat_save + t(LD_mat_save)
+    diag(cov_X) <- 1
+    
+    
+    snp_ref_twge <- snp_ref[array.snp]
+    index <- sum.stat$A2 != snp_ref_twge
+    
+    
+    tmp <- sum.stat$A1[index]
+    sum.stat$A1[index] <- sum.stat$A2[index]
+    sum.stat$A2[index] <- tmp
+    sum.stat$Freq1.Hapmap[index] <- 1 - sum.stat$Freq1.Hapmap[index]
+    sum.stat$b[index] <- -sum.stat$b[index]
+    
+    betas_meta <-  sum.stat$b
+    betas_se <-  sum.stat$se
+    freq <-  sum.stat$Freq1
+    n.vec <- sum.stat$N
+    
+    p <- length(betas_meta)
+    var.X <- 2*freq*(1-freq)
+    if(standardize == T){
+      B <- cov_X
+      Xy <- betas_meta * v.y / betas_se^2 / sqrt(var.X) / n.vec
+    }else{
+      B <- diag(sqrt(var.X)) %*% cov_X %*% diag(sqrt(var.X))
+      Xy <- betas_meta * v.y / betas_se^2 / n.vec
+    }
+    
+    ## X'X
+    lambda.v <- c()
+    beta <- numeric(p)
+    
+    lambda <- max(abs(Xy))
+    beta.mat <- sA.mat <- matrix(0,p,0)
+    lambda.v <- c(lambda.v,lambda)
+    j1 <- which.max(abs(Xy))
+    A <- c(j1)
+    nA <- (1:p)[-A]
+    sA <- sign(Xy[A])
+    sA.v <- numeric(p)
+    sA.v[A] <- sA
+    sA.mat <- cbind(sA.mat, sA.v)
+    XaXa_inv <- solve(B[A,A])
+    beta[A] <- XaXa_inv %*% (Xy[A] - lambda * sA)
+    beta.mat <- cbind(beta.mat, beta)
+    
+    # Next hitting time
+    XjXa <- B[nA,A]
+    ##### Compute the hitting times #####
+    
+    
+    while(lambda > 0 & length(A) < (nvar + 1)){
+      
+      # LASSO solution as lamb decreases from lamb_k
+      
+      temp <- XjXa %*% XaXa_inv
+      
+      posi1 <- (Xy[nA] - temp %*% Xy[A]) / (1 - temp %*% sA)
+      nega1 <- (Xy[nA] - temp %*% Xy[A]) / (-1 - temp %*% sA)
+      both <- cbind(posi1,nega1)
+      rownames(both) <- nA
+      hit <- max(both[both < lambda - 1e-10])
+      
+      sign_j <- (-1)^(which(both == hit, arr.ind = TRUE)[2] - 1)  # 1 for 1st col, -1 for 2nd col
+      ind <- nA[which(both == hit, arr.ind = TRUE)[1]]
+      
+      # Next crossing time
+      
+      cross_all <- (XaXa_inv %*% Xy[A]) / (XaXa_inv %*% sA)
+      
+      cross <- max(cross_all[which(cross_all < lambda - 1e-10)])
+      #cross <- -Inf
+      ind2 <- which(cross_all == cross)
+      
+      # Update lambda
+      lambda <- max(hit, cross)
+      
+      if (cross < hit){
+        A <- c(A, ind)
+        sA <- c(sA, sign_j)
+        sA.v <- numeric(p)
+        sA.v[A] <- sA
+        sA.mat <- cbind(sA.mat, sA.v)
+        nA <- (1:p)[-A]
+      } else{
+        beta[A[ind2]] <- 0
+        A <- A[-ind2]
+        sA <- sA[-ind2]
+        sA.v <- numeric(p)
+        sA.v[A] <- sA
+        sA.mat <- cbind(sA.mat, sA.v)
+        nA <- (1:p)[-A]
+      }
+      
+      if(length(A) == p){
+        lambda.v <- c(lambda.v,lambda)
+        XaXa_inv <- solve(B[A,A])
+        beta[A] <- XaXa_inv %*% (Xy[A] -lambda * sA)
+        beta.mat <- cbind(beta.mat, beta)
+        break
+      }
+      
+      XaXa_inv <- solve(B[A,A])
+      beta[A] <- XaXa_inv %*% (Xy[A] - lambda * sA)
+      beta.mat <- cbind(beta.mat, beta)
+      
+      # Next hitting time
+      XjXa <- B[nA,A]
+      lambda.v <- c(lambda.v,lambda)
+      
+    }
+    
+    if(standardize == T){
+      beta.mat <- diag(1 / sqrt(var.X)) %*% beta.mat 
+    }
+    if(is.na(lambda.vec)){
+      rownames(beta.mat) <- rownames(cov_X)
+      return(list(lambda.v = lambda.v, beta.mat = Matrix(beta.mat,sparse = TRUE)))
+    }
+    
+    
+    
+    
+    ##### Give a tuning parameter, get result #####
+    
+    lap <- function(lambda){
+      if(lambda > max(lambda.v))
+        return(numeric(p))
+      if(lambda < lambda.v[length(lambda.v)] || lambda == lambda.v[length(lambda.v)])
+        return(XaXa_inv %*% (Xy[A] - lambda * sA))
+      k <- length(which(lambda < lambda.v))
+      beta <- (beta.mat[,k+1]-beta.mat[,k])/(lambda.v[k+1]-lambda.v[k])*(lambda - lambda.v[k]) + beta.mat[,k]
+      return(beta)
+    }
+    if(min(lambda.vec)< min(lambda.v))
+      stop(paste("More than", nvar, "variants will be selected. Please set a larger nvar."))
+    bm <- matrix(0,p,length(lambda.vec))
+    for(i in 1:length(lambda.vec)){
+      bm[,i] <- lap(lambda.vec[i])
+    }
+    
+    rownames(bm) <- rownames(cov_X)
+    return(list(lambda.v = lambda.vec, beta.mat = Matrix(bm,sparse = TRUE)))
+  }

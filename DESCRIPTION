@@ -1,0 +1,13 @@
+Package: sojo
+Type: Package
+Title: Selection Operator for Jointly analyzing multiple variants (SOJO)
+Version: 1.0
+Date: 2017-05-18
+Author: Zheng Ning
+Maintainer: Zheng Ning <zheng.ning@ki.se>
+Description: Computing penalized Selection Operator for JOintly analyzing multiple variants (SOJO) within a mapped locus, based on LASSO regression derived from GWAS summary statistics.
+License: GPL (>= 3)
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-12-11 10:32:45 UTC; zhengning
+Imports: Matrix
