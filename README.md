@@ -32,8 +32,7 @@ What data are required?
 * GWAS summary statistics of SNPs at a locus for a
 trait. The data frame of GWAS summary statistics should contain columns
 for variant names (column name `SNP`), effect alleles (column name
-`A1`), reference alleles (column name `A2`), allele frequencies of A1
-(column name `Freq1`), effect sizes (column name `b`), standard errors
+`A1`), reference alleles (column name `A2`), effect sizes (column name `b`), standard errors
 (column name `se`), and sample sizes (column name `N`). An example data
 frame is given later.
 
@@ -146,11 +145,11 @@ variants with non-zero coefficients. The vector of lambdas when a
 variant is added into or removed from the model can been seen by:
 
     res$lambda.v
-
-    ##  [1] 0.012017 0.011131 0.009834 0.009622 0.009194 0.007176 0.006401
-    ##  [8] 0.005839 0.005157 0.004852 0.004730 0.004518 0.004410 0.004284
-    ## [15] 0.004102 0.004016 0.003913 0.003896 0.003830 0.003814 0.003618
-    ## [22] 0.003569 0.003531 0.003522 0.003510
+    
+     [1] 0.010652 0.009970 0.009856 0.008357 0.007926 0.006471
+     [7] 0.005914 0.005605 0.005546 0.005475 0.004858 0.004663
+    [13] 0.004445 0.004347 0.004269 0.004150 0.004108 0.004086
+    [19] 0.004007 0.003995 0.003988
 
 We can check the LASSO solutions for some variants at lambdas among
 `lambda.v`:
@@ -158,13 +157,21 @@ We can check the LASSO solutions for some variants at lambdas among
     snp_selected <- which(res$beta.mat[,5] != 0)
     res$beta.mat[snp_selected,1:4]
 
-    ## 5 x 4 sparse Matrix of class "dgCMatrix"
-    ##           beta      beta       beta      beta
-    ## rs2142661    . .         -6.986e-18 3.330e-04
-    ## rs9614670    . 2.596e-17  1.408e-03 1.379e-03
-    ## rs6006753    . 1.894e-03  3.302e-03 3.589e-03
-    ## rs714022     . .          .         1.920e-18
-    ## rs8141212    . .          .         .
+               beta      beta       beta      beta
+    rs9614670     . .          .          .       
+    rs17560248    . 1.281e-03  1.497e-03  0.004333
+    rs714022      . .         -2.777e-18 -0.001104
+    rs763010      . .          .          .       
+    rs8141212     . 3.199e-18 -1.730e-04 -0.001459
+    
+To see which varaints are selected at the end of computation, we can use:
+
+    res$selected.markers
+    
+     [1] "rs17560248" "rs8141212"  "rs714022"   "rs9614670"  "rs763010"  
+     [6] "rs138179"   "rs1003505"  "rs7285946"  "rs5765536"  "rs6007594" 
+    [11] "rs6007085"  "rs5766414"  "rs5766305"  "rs2064068"  "rs973703"  
+    [16] "rs6007573"  "rs3810632"  "rs3788658"  "rs2742637"  "rs4823325" 
 
 The LASSO path plot can be obtained by:
 
