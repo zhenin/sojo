@@ -184,7 +184,7 @@ The LASSO path plot can be obtained by:
     matplot(log(res$lambda.v), t(as.matrix(res$beta.mat)), lty = 1, type = "l", 
         xlab = expression(paste(log, " ", lambda)), ylab = "Coefficients", main = "Summary-level LASSO")
 
-<img src="Images/example.png" width="700">
+<img src="Images/example.pdf" width="10">
 LASSO solution at some specific tuning parameters can also be computed
 via:
 
