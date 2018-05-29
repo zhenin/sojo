@@ -39,6 +39,12 @@ frame is given later.
 * A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from https://www.dropbox.com/home/sojo%20reference%20ld%20matrix. 
 These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. If chip markers are insufficient for your study, in this manual, we also provide commands to compute LD matrix and reference allele information based on 1000 Genomes European-ancestry samples.
 
+* (Optional) If GWAS summary statistics from another validation dataset are available, the optimal tuning parameter can be suggested by validation. The data frame of this validation GWAS summary statistics should contain columns
+for variant names (column name `SNP`), effect alleles (column name
+`A1`), reference alleles (column name `A2`), allele frequencies of effect alleles (column name `Freq1`), effect sizes (column name `b`), standard errors
+(column name `se`), and sample sizes (column name `N`). An example of validation data
+frame is given later.
+
 Installation
 ------------
 
@@ -49,7 +55,7 @@ Run the following command in R to install the **sojo** package:
 For Mac and Linux users, please download the source .tar.gz from https://r-forge.r-project.org/R/?group_id=2030
 and install via:
 
-    R CMD INSTALL sojo_1.0.tar.gz
+    R CMD INSTALL sojo_2.0.tar.gz
 
 in your terminal.
 
@@ -69,11 +75,11 @@ LASSO using Summary Statistics
 You need to load a data frame of GWAS summary statistics for a trait
 into your working directory. Let us demonstrate this via an example
 included in the package. Here, we have the summary statistics for height
-across 963 variants around rs11090631 on chromosome 22. The top of the
+across 963 variants around rs11090631 on chromosome 22 reported by GIANT consortium. The top of the
 summary statistics file looks like:
 
-    data(sum.stat.raw)
-    head(sum.stat.raw)
+    data(sum.stat.discovery)
+    head(sum.stat.discovery)
 
     ##          SNP A1 A2 Freq1       b     se      N
     ## 1  rs1022622  C  G 0.942  0.0072 0.0050 241337
@@ -118,7 +124,7 @@ and the path to 1000 Genomes data by
      
 Now, we can get the LD matrix and reference allele imformation for the SNPs in this sumamry statistics data frame by
 
-    snps <- sum.stat.raw$SNP
+    snps <- sum.stat.discovery$SNP
     write.table(snps, file = paste0(snps[1],"_snp_list.txt"), quote = F, row.names = F, col.names = F)
     chr <- 22
 
@@ -137,7 +143,7 @@ Now, we can get the LD matrix and reference allele imformation for the SNPs in t
 Once the data are successfully loaded and all necessary columns are
 present, the LASSO solution can be computed by:
 
-    res <- sojo(sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, nvar = 20)
+    res <- sojo(sum.stat.discovery, LD_ref = LD_mat, snp_ref = snp_ref, nvar = 20)
 
 The result is a list with two sub-objects `$lambda.v` and `$beta.mat`.
 By setting `nvar = 20`, the computation stops when the model include 20
@@ -182,7 +188,50 @@ The LASSO path plot can be obtained by:
 LASSO solution at some specific tuning parameters can also be computed
 via:
 
-    res2 <- sojo(sum.stat.raw = sum.stat.raw, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.004,0.002))
+    res2 <- sojo(sum.stat.discovery = sum.stat.discovery, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.004,0.002))
+    
+    
+#### Determine the optimal tuning parameter using GWAS summary statistics from another validation dataset
+
+If GWAS summary statistics from another validation dataset are available, the out-of-sample prediction *R^2* can be computed at each tuning parameter. By maximizing prediction *R^2*, the optimal tuning parameter can be suggested. In the package, as an example, we prepared UK Biobank GWAS summary statistics on height around rs11090631 on chromosome 22. The top of the
+validation summary statistics file looks like:
+
+    data(sum.stat.validation)
+    head(sum.stat.validation)
+    
+                      SNP A1 A2  Freq1         b       se      N
+    rs133755     rs133755  C  T 0.4961  0.005393 0.004081 120086
+    rs133753     rs133753  A  G 0.5603  0.005761 0.004111 120086
+    rs5764737   rs5764737  C  T 0.7942  0.010144 0.005047 120086
+    rs6006762   rs6006762  C  A 0.9444 -0.001854 0.008901 120086
+    rs12628484 rs12628484  G  T 0.7869  0.008926 0.004983 120086
+    rs6007154   rs6007154  C  T 0.7122  0.006574 0.004507 120086
+    
+Now we can pass the validation dataframe into sojo function:
+
+    res.valid <- sojo(sum.stat.discovery, sum.stat.validation, LD_ref = LD_mat, snp_ref = snp_ref, nvar = 20)
+    
+There will be three more values returned by the function: 
+(1) the optimal variants and their effect sizes (`beta.opt`)
+
+    res.valid$beta.opt
+    
+    rs6007594  rs9614670  rs1003505 rs17560248  rs6007085  rs5765536   rs138179   rs714022   rs763010  rs8141212  rs7285946 
+    0.000978   0.001087  -0.003599   0.009804   0.000370  -0.002922  -0.003670  -0.001667  -0.002810  -0.003298  -0.001995 
+    
+(2) the optimal tuning parameter (`lambda.opt`)
+
+    res.valid$lambda.opt
+    
+    [1] 0.004663
+    
+(3) out-of-sample *R^2* at each tuning parameter (`R2`)
+    
+    res.valid$R2
+    
+     [1] 0.0000000 0.0002814 0.0003447 0.0004432 0.0004448 0.0004587 0.0004550 0.0004540
+     [9] 0.0004532 0.0004546 0.0004589 0.0004604 0.0004576 0.0004572 0.0004567 0.0004554
+    [17] 0.0004551 0.0004547 0.0004526 0.0004522 0.0004519
 
 For Help
 --------
