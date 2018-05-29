@@ -193,7 +193,7 @@ via:
     
 #### Determine the optimal tuning parameter using GWAS summary statistics from another validation dataset
 
-If GWAS summary statistics from another validation dataset are available, the out-of-sample prediction *R^2* can be computed at each tuning parameter. By maximizing prediction *R^2*, the optimal tuning parameter can be suggested. In the package, as an example, we prepared UK Biobank GWAS summary statistics on height around rs11090631 on chromosome 22. The top of the
+If GWAS summary statistics from another validation dataset are available, the out-of-sample prediction R<sup>2</sup> can be computed at each tuning parameter. By maximizing prediction R<sup>2</sup>, the optimal tuning parameter can be suggested. In the package, as an example, we prepared UK Biobank GWAS summary statistics on height around rs11090631 on chromosome 22. The top of the
 validation summary statistics file looks like:
 
     data(sum.stat.validation)
@@ -225,7 +225,7 @@ There will be three more values returned by the function:
     
     [1] 0.004663
     
-(3) out-of-sample *R^2* at each tuning parameter (`R2`)
+(3) out-of-sample R<sup>2</sup> at each tuning parameter (`R2`)
     
     res.valid$R2
     
