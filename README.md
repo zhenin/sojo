@@ -188,7 +188,7 @@ The LASSO path plot can be obtained by:
 LASSO solution at some specific tuning parameters can also be computed
 via:
 
-    res2 <- sojo(sum.stat.discovery = sum.stat.discovery, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.004,0.002))
+    res2 <- sojo(sum.stat.discovery = sum.stat.discovery, LD_ref = LD_mat, snp_ref = snp_ref, lambda.vec = c(0.006,0.004))
     
     
 #### Determine the optimal tuning parameter using GWAS summary statistics from another validation dataset
