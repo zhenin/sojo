@@ -36,7 +36,7 @@ for variant names (column name `SNP`), effect alleles (column name
 (column name `se`), and sample sizes (column name `N`). An example data
 frame is given later.
 
-* A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from https://www.dropbox.com/home/sojo%20reference%20ld%20matrix. 
+* A reference LD correlation matrix including SNPs at the locus and its corresponding reference alleles. Users can download reference LD correlation matrices and the reference alleles used to compute the LD matrices from [here](https://www.dropbox.com/sh/luieeltoycdtx14/AADbkUA_NCGlnqEv0wyAM5Qba?dl=0). 
 These LD matrices are based on 612,513 chip markers in Swedish Twin Registry. The function will then take overlapping SNPs between summary statistics and reference LD matrix. If chip markers are insufficient for your study, in this manual, we also provide commands to compute LD matrix and reference allele information based on 1000 Genomes European-ancestry samples.
 
 * (Optional) If GWAS summary statistics from another validation dataset are available, the optimal tuning parameter can be suggested by validation. The data frame of this validation GWAS summary statistics should contain columns
@@ -95,14 +95,17 @@ Now we need the reference LD information at the locus where rs11090631 is locate
 
 1. The Swedish Twin Registry 
 
-We can download the LD matrix and reference allele imformation for chromosome 22 directly by:
+We can download the LD matrix and reference allele imformation directly by:
 
-    download.file("https://www.dropbox.com/s/ty1udfhx5ohauh8/LD_chr22.rda?raw=1", 
-    destfile = paste0(find.package('sojo'), "/LD_chr22.rda"))
+``` r
+download.file("https://www.dropbox.com/sh/luieeltoycdtx14/AADbkUA_NCGlnqEv0wyAM5Qba?dl=1", 
+              destfile = "/Your/path/SOJO_Reference_LD_Matrix.zip")
+unzip("/Your/path/SOJO_Reference_LD_Matrix.zip", exdir = "/Your/path/")
+```
     
-Then load it into environment:
+Then load the file for chr22 into environment by :
 
-    load(file = paste0(find.package('sojo'), "/LD_chr22.rda"))
+    load(file = "/Your/path/LD_chr22.rda"))
     
 2. The 1000 Genomes Project
 
