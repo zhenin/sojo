@@ -124,7 +124,7 @@ sojo <-
       sum.stat.valid <- sum.stat.validation[snps.overlap,]
     }
     
-
+    
     
     ##### Map reference allele (follow LD_ref at here, change back to ref in discovery sample at the end)#####
     
@@ -236,7 +236,11 @@ sojo <-
         break
       }
       
-      XaXa_inv <- solve(B[A,A])
+      XaXa_inv <- try(solve(B[A,A]), silent = T)
+      if(class(XaXa_inv) == "try-error"){
+        A <- A[-length(A)]
+        break
+      }
       beta[A] <- XaXa_inv %*% (Xy[A] - lambda * sA)
       beta.mat <- cbind(beta.mat, beta)
       
@@ -268,7 +272,7 @@ sojo <-
       for(i in 2:ncol(beta.mat)){
         R2[i] <- r2_sum(beta_est=beta.mat[,i], b_uni=sum.stat.valid$b, se_uni=sum.stat.valid$se, LD_ref=LD_use, var.X=var.X.valid, N=sum.stat.valid$N)
       }
-
+      
     }
     
     if(is.na(lambda.vec)){
